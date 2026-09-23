@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT_M3AV = Path("data/raw/m3av_dataset")
 SET_SPLIT_JSON_FILE = ROOT_M3AV/"set_split.json"
 DATASET_DIR = ROOT_M3AV/"dataset_v1.0_noaudio"
+STATS_FILE = Path("outputs/m3av-noaudio-inspection-results.txt")
 
 SET_SPLITS = ["train", "test", "dev"]
 
@@ -28,15 +29,14 @@ def collect_statistics(splits):
             "seconds": 0.0,
             "segments": 0,
             "words": 0,
-            "missing": []
         }
         for split in SET_SPLITS
     }
     
-    for id, split in splits.items():
+    for vid_id, split in splits.items():
         
-        id_dir = DATASET_DIR/id
-        transcript_file = id_dir/"speech"/"final+timestamps.json"
+        vid_id_dir = DATASET_DIR/vid_id
+        transcript_file = vid_id_dir/"speech"/"final+timestamps.json"
         
         data = load_json(transcript_file)
         
@@ -53,12 +53,74 @@ def collect_statistics(splits):
     return stats
 
 
-def check_dataset_files(splits):
-    pass
-        
-
 def dataset_stats(splits, stats):
-    res = 0
+    report = ""
+    
+    # datset info
+    report+= "\n" + "=" * 100 + "\n" 
+    report+= "M3AV DATASET\n" 
+    report+= "=" * 100 + "\n"
+    
+    report+= f"\nSplit file: {SET_SPLIT_JSON_FILE}\n" 
+    report+= f"Dataset directory: {DATASET_DIR}\n" 
+    report+= f"Total entries: {len(splits)}\n"
+    
+    # summary 
+    report+= "\n" + "=" * 100 + "\n" 
+    report+= "DATASET SUMMARY\n" 
+    report+= "=" * 100 + "\n" 
+    report+= ( 
+        f"{'Split':<10}" 
+        f"{'Videos':>10}" 
+        f"{'Hours':>12}" 
+        f"{'Segments':>14}" 
+        f"{'Words':>14}\n" 
+    )
+    
+    report+= "-" * 60 + "\n" 
+    
+    for split in SET_SPLITS: 
+        data = stats[split] 
+        report += ( 
+            f"{split:<10}" 
+            f"{data['videos']:>10}" 
+            f"{(data['seconds']/3600):>12.2f}" 
+            f"{data['segments']:>14}" 
+            f"{data['words']:>14}\n" 
+        )
+    
+    # Detailed statistics 
+    report+= "\n" + "=" * 100 + "\n" 
+    report+= "SPLIT STATISTICS\n" 
+    report+= "=" * 100 + "\n" 
+    
+    for split in SET_SPLITS: 
+        data = stats[split]  
+        
+        report+= f"\n{split.upper()}\n"
+        report+= "-" * 30 + "\n" 
+        
+        report+= f"Videos: {data['videos']}\n" 
+        report+= f"Hours: {(data['seconds']/3600):.2f}\n"
+        report+= f"Segments: {data['segments']}\n" 
+        report+= f"Words: {data['words']}\n" 
+        
+        if data["segments"] > 0: 
+            average_segment = data["seconds"] / data["segments"] 
+            report+= f"Avg segment: {average_segment:.2f} seconds\n" 
+        
+        if data["videos"] > 0: 
+            average_video = data["seconds"] / data["videos"] 
+            report+= f"Avg video: {average_video / 60:.2f} minutes\n"
+    
+    report+= "\n" + "=" * 100
+        
+    # Print everything 
+    print(report) 
+    
+    # Write report to file 
+    with open(STATS_FILE, "w", encoding="utf-8") as f: 
+        f.write(report)
 
     
 def main():
@@ -67,9 +129,6 @@ def main():
     
     # define splits
     set_splits = load_json(SET_SPLIT_JSON_FILE)
-    
-    # check all directories in set_split exist in m3av-dataset
-    check_dataset_files(set_splits)
     
     # get stats
     stats = collect_statistics(set_splits)
