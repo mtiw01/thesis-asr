@@ -22,8 +22,40 @@ def load_json(file_path):
 
 
 def collect_statistics(splits):
-    pass
+    stats = {
+        split: {
+            "videos": 0,
+            "seconds": 0.0,
+            "segments": 0,
+            "words": 0,
+            "missing": []
+        }
+        for split in SET_SPLITS
+    }
+    
+    for id, split in splits.items():
+        
+        id_dir = DATASET_DIR/id
+        transcript_file = id_dir/"speech"/"final+timestamps.json"
+        
+        data = load_json(transcript_file)
+        
+        # get duration
+        timestr = data[-1].get("timestr")
+        _, end = timestr.split("_")
+        end_seconds = int(end)/1000
 
+        stats[split]["videos"] +=1
+        stats[split]["seconds"] += end_seconds
+        stats[split]["segments"] += len(data)
+        stats[split]["words"] += sum(len(segment.get("words_spoken", [])) for segment in data)
+    
+    return stats
+
+
+def check_dataset_files(splits):
+    pass
+        
 
 def dataset_stats(splits, stats):
     res = 0
@@ -35,7 +67,9 @@ def main():
     
     # define splits
     set_splits = load_json(SET_SPLIT_JSON_FILE)
-    print(set_splits)
+    
+    # check all directories in set_split exist in m3av-dataset
+    check_dataset_files(set_splits)
     
     # get stats
     stats = collect_statistics(set_splits)
