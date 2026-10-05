@@ -16,14 +16,139 @@ def load_json(file):
         return json.load(f)
 
 
+def parse_timestr(timestr):
+    """
+    Convert timestr from milliseconds to seconds.
+    Example:
+        "0004960_0013700" -> (4.96, 13.70)
+    """
+    start, end = timestr.split("_")
+
+    start_seconds = int(start) / 1000.0
+    end_seconds = int(end) / 1000.0
+
+    return start_seconds, end_seconds
+
+
 def load_test_video_ids(split_file):
     split_data = load_json(split_file)
     
-    assert(isinstance(split_data, dict)), "m"
+    if not isinstance(split_data, dict):
+        raise ValueError(
+            f"Expected split file to contain a JSON object."
+        )
+
+    test_ids = [
+        video_id
+        for video_id, split in split_data.items()
+        if split == "test"
+    ]
+
+    return sorted(test_ids)
+
+
+def build_manifest(test_video_ids):
+    rows = []
+    
+    for video_id in test_video_ids:
+        video_dir = DATASET_DIR / video_id
+        speech_file = video_dir / "speech" / "final+timestamps.json"
+        
+        if not video_dir.exists():
+            raise FileNotFoundError(
+                f"Video directory does not exist: {video_dir}"
+            )
+
+        if not speech_file.exists():
+            raise FileNotFoundError(
+                f"Speech file does not exist: {speech_file}"
+            )
+
+        segments = load_json(speech_file)
+
+        if not isinstance(segments, list):
+            raise ValueError(
+                f"Expected list of segments in {speech_file}, "
+                f"got {type(segments).__name__}"
+            )
+        
+        for segment_index, segment in enumerate(segments):
+            required_fields = {
+                "timestr",
+                "final_spoken",
+                "final_written",
+            }
+
+            missing = required_fields - segment.keys()
+
+            if missing:
+                raise ValueError(
+                    f"{speech_file}, segment {segment_index} "
+                    f"is missing fields: {sorted(missing)}"
+                )
+
+            start, end = parse_timestr(segment["timestr"])
+
+            if end <= start:
+                raise ValueError(
+                    f"Invalid segment timing in {speech_file}, "
+                    f"segment {segment_index}: "
+                    f"{segment['timestr']}"
+                )
+
+            sample_id = f"{video_id}_{segment_index:06d}"
+            
+            rows.append(
+                {
+                    "sample_id": sample_id,
+                    "video_id": video_id,
+                    "split": "test",
+                    "segment_index": segment_index,
+                    "start": start,
+                    "end": end,
+                    "reference": segment["final_spoken"],
+                    "reference_written": segment["final_written"],
+                }
+            )
+    
+    
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    fieldnames = [
+        "sample_id",
+        "video_id",
+        "split",
+        "segment_index",
+        "start",
+        "end",
+        "reference",
+        "reference_written",
+    ]
+    
+    with OUTPUT_FILE.open(
+        "w",
+        encoding="utf-8",
+        newline="",
+    ) as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=fieldnames,
+        )
+
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print("Manifest created successfully.")
+    print(f"Output:   {OUTPUT_FILE}")
+    print(f"Videos:   {len(test_video_ids)}")
+    print(f"Segments: {len(rows)}")
 
 
 def main():
+    
     test_video_ids = load_test_video_ids(SET_SPLIT_JSON_FILE)
+    
+    build_manifest(test_video_ids)
 
 
 if __name__=="__main__":
