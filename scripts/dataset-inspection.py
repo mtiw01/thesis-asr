@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 # Global Variables - Filepaths
-ROOT_M3AV = Path("data/raw/m3av_dataset")
+ROOT_M3AV = Path("data/processed/m3av_dataset")
 SET_SPLIT_JSON_FILE = ROOT_M3AV/"set_split.json"
 DATASET_DIR = ROOT_M3AV/"dataset_v1.0_noaudio"
 STATS_FILE = Path("outputs/m3av-noaudio-inspection-results.txt")

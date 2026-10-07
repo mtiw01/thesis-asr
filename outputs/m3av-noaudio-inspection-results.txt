@@ -3,8 +3,8 @@
 M3AV DATASET
 ====================================================================================================
 
-Split file: data\raw\m3av_dataset\set_split.json
-Dataset directory: data\raw\m3av_dataset\dataset_v1.0_noaudio
+Split file: data\processed\m3av_dataset\set_split.json
+Dataset directory: data\processed\m3av_dataset\dataset_v1.0_noaudio
 Total entries: 1113
 
 ====================================================================================================
