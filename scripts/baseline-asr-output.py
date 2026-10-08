@@ -42,7 +42,7 @@ def get_baseline(df):
 
         print(f"[{i + 1}/{len(df)}] {sample_id}")
 
-        result = model.transcribe(str(audio_path), language="en", fp16=(device == "cuda"))
+        result = model.transcribe(str(audio_path), language="en")
 
         prediction = result["text"].strip()
 
