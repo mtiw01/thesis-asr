@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 import whisper
 
-chosen_model = "whisper"
+CHOSEN_MODEL = "whisper"
 
 TEST_AUDIO_DIR = Path("data/processed/m3av_dataset/test_set_audio")
 
@@ -22,9 +22,9 @@ def get_baseline(df):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
     
-    if chosen_model=="whisper":
+    if CHOSEN_MODEL=="whisper":
         model = whisper.load_model("medium", device=device)
-    elif chosen_model=="qwen":
+    elif CHOSEN_MODEL=="qwen":
         pass
     else:
         return "The chosen model is unknown."
@@ -50,7 +50,7 @@ def get_baseline(df):
     
     df['prediction'] = predictions
     
-    file_path = f"outputs/baseline/{chosen_model}_predictions.csv"
+    file_path = f"outputs/baseline/{CHOSEN_MODEL}_predictions.csv"
     df.to_csv(file_path, index=False)
     print(f"The results are saved to: {file_path}")
 

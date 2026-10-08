@@ -8,11 +8,11 @@ SET_SPLIT_JSON_FILE = ROOT_M3AV / "set_split.json"
 DATASET_DIR = ROOT_M3AV / "dataset_v1.0_noaudio"
 
 OUTPUT_DIR = Path("data/manifests")
-OUTPUT_FILE = OUTPUT_DIR / "m3av_test_set_manifest.csv"
+
 
 
 def load_json(file):
-    with open(file, 'r') as f:
+    with open(file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -30,27 +30,21 @@ def parse_timestr(timestr):
     return start_seconds, end_seconds
 
 
-def load_test_video_ids(split_file):
+def load_video_ids(split_file):
     split_data = load_json(split_file)
     
     if not isinstance(split_data, dict):
         raise ValueError(
             f"Expected split file to contain a JSON object."
         )
-
-    test_ids = [
-        video_id
-        for video_id, split in split_data.items()
-        if split == "test"
-    ]
-
-    return sorted(test_ids)
+    
+    return split_data
 
 
-def build_manifest(test_video_ids):
+def build_manifest(split, video_ids):
     rows = []
     
-    for video_id in test_video_ids:
+    for video_id in video_ids:
         video_dir = DATASET_DIR / video_id
         speech_file = video_dir / "speech" / "final+timestamps.json"
         
@@ -102,7 +96,7 @@ def build_manifest(test_video_ids):
                 {
                     "sample_id": sample_id,
                     "video_id": video_id,
-                    "split": "test",
+                    "split": split,
                     "segment_index": segment_index,
                     "start": start,
                     "end": end,
@@ -125,30 +119,29 @@ def build_manifest(test_video_ids):
         "reference_written",
     ]
     
-    with OUTPUT_FILE.open(
-        "w",
-        encoding="utf-8",
-        newline="",
-    ) as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=fieldnames,
-        )
-
+    output_file = OUTPUT_DIR / f"m3av_{split}_manifest.csv"
+    with output_file.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
-    print("Manifest created successfully.")
-    print(f"Output:   {OUTPUT_FILE}")
-    print(f"Videos:   {len(test_video_ids)}")
-    print(f"Segments: {len(rows)}")
+    print(f"\n{split.upper()} Manifest created successfully.")
+    print(f"Output file: {output_file}")
+    print(f"Videos:      {len(video_ids)}")
+    print(f"Segments:    {len(rows)}")
 
 
 def main():
+    splits = ['train', 'test', 'dev']
+    video_ids = load_video_ids(SET_SPLIT_JSON_FILE)
     
-    test_video_ids = load_test_video_ids(SET_SPLIT_JSON_FILE)
-    
-    build_manifest(test_video_ids)
+    for split in splits:
+        ids = sorted([
+                video_id
+                for video_id, s in video_ids.items()
+                if s == split
+            ])
+        build_manifest(split, ids)
 
 
 if __name__=="__main__":
