@@ -1,0 +1,13 @@
+[project]
+name = "thesis-asr"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "huggingface-hub>=2.1.1",
+    "jiwer>=4.0.0",
+    "openai-whisper>=20250625",
+    "pandas>=3.0.6",
+    "torch>=2.14.1",
+]
