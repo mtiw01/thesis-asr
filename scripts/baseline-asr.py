@@ -4,6 +4,7 @@ import torch
 import whisper
 import tempfile
 import subprocess
+import time
 
 
 # Configuration
@@ -179,8 +180,17 @@ def get_baseline(df):
 
 
 def main():
-    df = load_dataframe().head(3)
+    df = load_dataframe() #.head(10)
     get_baseline(df)
+    # start_time = time.perf_counter()
+
+    # get_baseline(df)
+
+    # end_time = time.perf_counter()
+    # elapsed = end_time - start_time
+
+    # print(f"\nTotal runtime: {elapsed:.2f} seconds")
+    # print(f"Total runtime: {elapsed / 60:.2f} minutes")
 
 
 if __name__=="__main__":
