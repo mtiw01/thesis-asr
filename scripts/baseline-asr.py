@@ -8,7 +8,7 @@ import time
 
 
 # Configuration
-CHOSEN_MODEL = "whisper" # whisper or qwen
+CHOSEN_MODEL = "qwen" # whisper or qwen
 
 WHISPER_SIZE = "medium"
 QWEN_MODEL_ID = "Qwen/Qwen3-ASR-1.7B-hf"
