@@ -1,7 +1,8 @@
 .venv/*
 data/raw/*
 data/processed/*
-
+logs/*
+scripts/*.sbatch
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
