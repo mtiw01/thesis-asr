@@ -1,7 +1,8 @@
 .venv/*
 data/raw/*
 data/processed/*
-logs/*
+logs/
+outputs/smoke_test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
