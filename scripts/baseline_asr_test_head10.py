@@ -180,7 +180,7 @@ def get_baseline(df):
 
 
 def main():
-    df = load_dataframe() #.head(10)
+    df = load_dataframe().head(10)
     # get_baseline(df)
     start_time = time.perf_counter()
 
