@@ -12,4 +12,4 @@ source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate /scratch/matiwa/envs/thesis-asr
 
 cd /scratch/matiwa/thesis-asr
-./.venv/bin/python -u scripts/baseline-asr.py
+./.venv/bin/python -u scripts/baseline_asr.py
