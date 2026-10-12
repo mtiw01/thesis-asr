@@ -6,7 +6,7 @@ from pathlib import Path
 CHOSEN_MODEL = "whisper" # whisper or qwen
 
 if CHOSEN_MODEL=='whisper':
-    SIZE = "medium" # turbo or medium
+    SIZE = "turbo" # turbo or medium
 else:
     SIZE = "1.7B" # 1.7B or 0.6B
     QWEN_MODEL_ID = f"Qwen/Qwen3-ASR-{SIZE}-hf" # Qwen/Qwen3-ASR-1.7B-hf or Qwen/Qwen3-ASR-0.6B-hf
