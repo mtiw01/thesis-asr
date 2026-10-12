@@ -3,7 +3,14 @@ from jiwer import process_words, visualize_alignment, wer
 import re
 from pathlib import Path
 
-chosen_model = "whisper" # whisper or qwen
+CHOSEN_MODEL = "whisper" # whisper or qwen
+
+if CHOSEN_MODEL=='whisper':
+    SIZE = "medium" # turbo or medium
+else:
+    SIZE = "1.7B" # 1.7B or 0.6B
+    QWEN_MODEL_ID = f"Qwen/Qwen3-ASR-{SIZE}-hf" # Qwen/Qwen3-ASR-1.7B-hf or Qwen/Qwen3-ASR-0.6B-hf
+
 OUTPUT_DIR = Path("outputs/baseline")
 
 def normalize_text(text):
@@ -29,7 +36,7 @@ def get_score(ref, pred):
     
     score = wer(ref, pred)
     # res += f"-------------------------"
-    res += f"=== WER Model: {chosen_model.upper()} ==="
+    res += f"=== WER Model: {CHOSEN_MODEL.upper()} ==="
     res += f"\n-----------------------------\n"
     res += f"WER: {score:.4f}\n\n"
     res += "="*75 + "\n\n\n"
@@ -46,7 +53,7 @@ def get_score(ref, pred):
 
 
 def write_result(res):
-    output_file = OUTPUT_DIR / f"{chosen_model}_wer_evaluation.txt"
+    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_wer_evaluation.txt"
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(res)
     return output_file
@@ -54,11 +61,11 @@ def write_result(res):
 
 def main():
     
-    if chosen_model not in ['whisper', 'qwen']:
+    if CHOSEN_MODEL not in ['whisper', 'qwen']:
         return "Unknown Model"
     
     # set filepath
-    file_path = OUTPUT_DIR / f"{chosen_model.lower()}_predictions.csv"
+    file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_predictions.csv"
     # read csv file
     df = pd.read_csv(file_path)
     
@@ -85,4 +92,4 @@ if __name__=="__main__":
     
 #score = wer(ref, pred)
 
-#print(f"Model: {chosen_model}; WER: {score:.4f}")
+#print(f"Model: {CHOSEN_MODEL}; WER: {score:.4f}")

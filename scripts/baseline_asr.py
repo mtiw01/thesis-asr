@@ -8,10 +8,13 @@ import time
 
 
 # Configuration
-CHOSEN_MODEL = "qwen" # whisper or qwen
+CHOSEN_MODEL = "whisper" # whisper or qwen
 
-WHISPER_SIZE = "medium"
-QWEN_MODEL_ID = "Qwen/Qwen3-ASR-1.7B-hf"
+if CHOSEN_MODEL=='whisper':
+    SIZE = "turbo" # turbo or medium
+else:
+    SIZE = "1.7B" # 1.7B or 0.6B
+    QWEN_MODEL_ID = f"Qwen/Qwen3-ASR-{SIZE}-hf" # Qwen/Qwen3-ASR-1.7B-hf or Qwen/Qwen3-ASR-0.6B-hf
 
 
 # Constants
@@ -47,7 +50,7 @@ def load_model():
     print(f"Using device: {device}")
         
     if CHOSEN_MODEL=="whisper":
-        model = whisper.load_model(WHISPER_SIZE, device=device)
+        model = whisper.load_model(SIZE, device=device)
         return model, None
     elif CHOSEN_MODEL=="qwen":
         from transformers import AutoProcessor, AutoModelForMultimodalLM
@@ -166,7 +169,7 @@ def get_baseline(df):
     results["status"] = statuses
     
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_predictions.csv"
+    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_predictions.csv"
     results.to_csv(output_file, index=False)
     print(f"The results are saved to: {output_file}")
     
