@@ -24,7 +24,7 @@ def move_files(output_dir, split_ids):
         file_name = f"{video_id}.flac"
         source = DATASET_DIR_AUDIO / file_name
         target = output_dir / file_name
-        if i%10==0:
+        if i%20==0:
             print(f"{i}/{len(split_ids)}")
         if source.exists():
             shutil.copy(source, target)
@@ -39,14 +39,13 @@ def main():
     splits = ["train", "dev", "test"]
     for split in splits:
         output_dir = ROOT_M3AV / f"{split}_set_audio"
-        print(output_dir)
+        print("Current Split: ", split, "Output Dir: ", output_dir)
         set_splits = load_json(SET_SPLIT_JSON_FILE)
         split_ids = [
                 video_id
                 for video_id, s in set_splits.items()
                 if s == split
             ]
-        print(split_ids[:10])
         create_folder(output_dir)
         print("Folder created.")
         copied, missing = move_files(output_dir, split_ids)
