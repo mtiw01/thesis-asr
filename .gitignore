@@ -3,6 +3,8 @@ data/raw/*
 data/processed/*
 logs/
 outputs/smoke_test/
+ignore/
+project/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

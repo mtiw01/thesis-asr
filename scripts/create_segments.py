@@ -38,12 +38,7 @@ def crop_audio(audio_path, start, end, segment_path):
 
 def load_dataframe(input_csv):
     df = pd.read_csv(input_csv)
-    required_columns = {
-            "sample_id",
-            "video_id",
-            "start",
-            "end"
-        }
+    required_columns = {"sample_id", "video_id", "start", "end", "reference"}
     
     missing = required_columns - set(df.columns)
     if missing: 
@@ -72,7 +67,7 @@ def prepare_audio_split(split):
     print(f"\nPreparing {split}: {len(df)} segments")
     print(f"Output directory: {output_dir}")
     
-    for i, row in enumerate(df.iterrows(), start=1):
+    for i, (_, row) in enumerate(df.iterrows(), start=1):
         video_id = row["video_id"]
         sample_id = row["sample_id"]
         
@@ -93,6 +88,7 @@ def prepare_audio_split(split):
             
             crop_audio(audio_path, row["start"], row["end"], segment_path)
             
+            # AI suggestion to check that file exists and is not empty
             if not segment_path.is_file() or segment_path.stat().st_size == 0:
                 raise RuntimeError("Output segment is missing or empty")
 
@@ -107,6 +103,7 @@ def prepare_audio_split(split):
         
     if fail:
         error_file = output_dir / "preparation_errors.csv"
+        # .DataFrame ensure that the fail (list of dictionaries) is turned into a DataFrame before writing csv file
         pd.DataFrame(fail).to_csv(error_file, index=False)
         print(f"Errors saved to: {error_file}")
     
