@@ -38,7 +38,7 @@ def crop_audio(audio_path, start, end, segment_path):
 
 def load_dataframe(input_csv):
     df = pd.read_csv(input_csv)
-    required_columns = {"sample_id", "video_id", "start", "end", "reference"}
+    required_columns = {"sample_id", "video_id", "start", "end"}
     
     missing = required_columns - set(df.columns)
     if missing: 

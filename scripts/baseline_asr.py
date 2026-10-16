@@ -3,7 +3,6 @@ import pandas as pd
 import torch
 import whisper
 import time
-from create_segments import load_dataframe
 
 
 # Configuration
@@ -20,6 +19,20 @@ else:
 TEST_SEGMENT_DIR = Path("data/processed/m3av_dataset/segments/test")
 INPUT_CSV = Path("data/manifests/m3av_test_manifest.csv")
 OUTPUT_DIR = Path("outputs/baseline")
+
+
+def load_dataframe(input_csv):
+    df = pd.read_csv(input_csv)
+    required_columns = {"sample_id", "video_id", "start", "end", "reference"}
+    
+    missing = required_columns - set(df.columns)
+    if missing: 
+        raise ValueError(f"There are missing columns in manifest.\nMissing Columns: {missing}")
+    if df["sample_id"].duplicated().any():
+        raise ValueError("Manifest contains duplicate sample IDs.")
+    
+    print(f"Number of files/rows in manifest: {len(df)}")
+    return df
 
 
 def load_model():

@@ -13,6 +13,7 @@ else:
 
 OUTPUT_DIR = Path("outputs/baseline")
 
+# AI suggested normalization. Mine were only the apostrophe replacement and the .strip call
 def normalize_text(text):
     text = text.lower()
     # remove apostrophes without splitting contractions
