@@ -4,8 +4,8 @@ import time
 import math
 
 import matplotlib
-import matplotlib.pyplot as plt
 matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 import torch
 import whisper
@@ -85,22 +85,6 @@ def load_model(size):
 
 
 # === Manifest ==================
-
-def check_files(audio_files, split):
-    missing_files = [
-        str(path)
-        for path in audio_files
-        if not Path(path).is_file()
-    ]
-
-    if missing_files:
-        raise FileNotFoundError(
-            f"{len(missing_files)} audio files in the "
-            f"{split} dataset are missing. "
-            f"First examples: {missing_files[:5]}"
-        )
-
-    print(f"All {split} files exist at the correct path.")
 
 def load_manifest(file, split):
     df = pd.read_csv(file)
@@ -393,8 +377,8 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
     print(f"Training batches per epoch: {num_batches}")
     print(f"Epochs: {NUM_EPOCHS}")
     
-    # Set the device to GPU if available.
-    # Is this even needed if i already do the load_model above with cuda in mind?
+    # Set the device to GPU if available. 
+    # redundant because of load_model but makes function reusable.
     device = next(model.parameters()).device
     model = model.to(device)
     
@@ -419,21 +403,9 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
         print(f"\n=== Epoch {epoch+1}/{NUM_EPOCHS} ===")
 
         for batch_idx, (feats, texts) in enumerate(train_loader):
-            # Stop after running on 25% of the data
+            # Stop after running on train (sub-)set
             if batch_idx >= num_batches:
                 break
-            
-            # Normalize and convert text to tensor of indices using the tokenizer
-            text_tokens_list = [
-                tokens_to_prepend
-                + tokenizer.encode(text)
-                + [tokenizer.eot]
-                for text in texts
-            ]
-            # Convert to torch tensors
-            text_tokens_list = [
-                torch.LongTensor(text_tokens) for text_tokens in text_tokens_list
-            ]
             
             # Pad sequences
             prev_outputs_tokens, target_tokens, ignore_prefix_size = prepare_tokens(texts, tokenizer, tokens_to_prepend, device)
@@ -444,22 +416,6 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
             encoder_out = model.encoder(feats)
             text_logits = model.decoder(prev_outputs_tokens, encoder_out)
             text_logits = text_logits[:, ignore_prefix_size:, :]
-            # target_tokens = target_tokens[:, ignore_prefix_size:]
-            # # Compute loss
-            # loss = decoder_criterion(text_logits, target_tokens)
-            # loss_value = loss.item()
-            # # Normalize loss
-            # loss_value_normalized = loss_value / target_tokens.shape[0]
-            # print(f"batch_idx: {batch_idx}, loss: {loss_value_normalized}")
-            # # Backpropagation
-            # #TODO:
-            # loss = loss/8
-            # loss.backward()
-            # # Optimizer step every 8 batches
-            # #TODO:
-            # if (batch_idx+1)%8==0:
-                # optimizer.step()
-                # optimizer.zero_grad()
             loss_sum = decoder_criterion(text_logits, target_tokens)
             
             valid_tokens = (target_tokens!=-1).sum().item()
@@ -548,18 +504,6 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
         print(f"Metrics saved to: {metrics_path}")
     
     return model
-    # # Final optimizer step for any leftover gradients
-    # #TODO:
-    # optimizer.step()
-    # optimizer.zero_grad()
-    
-    # # use time.perf_counter() when saving model. So you can save the different models 
-    # # with their timestamps and the same name.
-    # curr_time = time.perf_counter()
-    # output_dir = Path(f"models/{SIZE}/{str(int(curr_time))}")
-    # output_dir.mkdir(parents=True, exist_ok=True)
-    # checkpoint_path = output_dir / f"whisper_{SIZE}_finetuned.pt"
-    # torch.save(model.state_dict(), checkpoint_path)
 
 
 
