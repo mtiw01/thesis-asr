@@ -21,7 +21,10 @@ TRAIN_MANIFEST_CSV = Path("data/manifests/m3av_train_manifest.csv")
 DEV_MANIFEST_CSV = Path("data/manifests/m3av_dev_manifest.csv")
 DATA_DIR = Path("data/processed/m3av_dataset/segments")
 
-TRAIN_SUBSET_FRACTION = 0.0005
+WHISPER_DIR = Path("outputs/training/whisper")
+MODELS_DIR = WHISPER_DIR / f"{SIZE}"
+
+TRAIN_SUBSET_FRACTION = 1.0
 BATCH_SIZE = 8
 GRAD_ACCUM_STEPS = 8
 LEARNING_RATE = 2e-5
@@ -300,6 +303,7 @@ def save_loss_plot(
     train_epoch_losses,
     dev_losses,
     output_dir,
+    epoch
 ):
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
@@ -336,7 +340,7 @@ def save_loss_plot(
 
     fig.tight_layout()
 
-    plot_path = output_dir / "loss.png"
+    plot_path = output_dir / f"loss_{epoch+1}.png"
     fig.savefig(plot_path, dpi=200)
     plt.close(fig)
 
@@ -463,6 +467,11 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
 
         epoch_train_loss = total_loss / total_valid_tokens
 
+        # Save model weights after training completes for this epoch.
+        checkpoint_path = output_dir / f"epoch_{epoch + 1}.pt"
+        torch.save(model.state_dict(), checkpoint_path)
+        print(f"Model weights saved to: {checkpoint_path}")
+        
         dev_loss, dev_wer = validate_whisper(
             model,
             dev_loader,
@@ -481,17 +490,11 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
         print(f"  Development loss: {dev_loss:.4f}")
         print(f"  Development WER: {dev_wer:.2%}")
 
-        # Save the current model after each epoch.
-        checkpoint_path = (
-            output_dir / f"whisper_{SIZE}_epoch_{epoch + 1}.pt"
-        )
-        torch.save(model.state_dict(), checkpoint_path)
-        
         # Keep the loss plot updated after every epoch.
-        save_loss_plot(train_batch_losses, train_losses, dev_losses, output_dir)
+        save_loss_plot(train_batch_losses, train_losses, dev_losses, output_dir, epoch)
 
         # Save metrics so they can be analyzed later.
-        metrics_path = output_dir / "training_metrics.csv"
+        metrics_path = output_dir / f"training_metrics_{epoch+1}.csv"
 
         pd.DataFrame({
             "epoch": list(range(1, len(train_losses) + 1)),
@@ -500,7 +503,6 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
             "dev_wer": dev_wers,
         }).to_csv(metrics_path, index=False)
 
-        print(f"Checkpoint saved to: {checkpoint_path}")
         print(f"Metrics saved to: {metrics_path}")
     
     return model
@@ -513,7 +515,7 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
 def main():
     start_time = time.time()
     
-    output_dir = (Path("models") / SIZE / time.strftime("%Y%m%d_%H%M%S"))
+    output_dir = MODELS_DIR / time.strftime("%Y%m%d_%H%M%S")
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"Output dir: {output_dir}")
