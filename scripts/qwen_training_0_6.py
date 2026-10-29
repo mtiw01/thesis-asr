@@ -23,7 +23,7 @@ DATA_DIR = Path("data/processed/m3av_dataset/segments")
 QWEN_MODEL_ID = f"Qwen/Qwen3-ASR-{SIZE}-hf" # Qwen/Qwen3-ASR-1.7B-hf or Qwen/Qwen3-ASR-0.6B-hf
 MODELS_DIR = Path(f"outputs/training/qwen_{SIZE}")
 
-TRAIN_SUBSET_FRACTION = 0.00005
+TRAIN_SUBSET_FRACTION = 0.0001
 BATCH_SIZE = 1
 GRAD_ACCUM_STEPS = 8
 LEARNING_RATE = 2e-5
@@ -524,6 +524,10 @@ def train_qwen(model, processor, train_dataset, dev_dataset, output_dir, device)
 
         print(f"Checkpoint saved to: {checkpoint_dir}")
 
+        if TRAIN_SUBSET_FRACTION < 1.0:
+            print(f"Smoke test complete ({TRAIN_SUBSET_FRACTION*100}% of train set); skipping full validation.")
+            return
+
         dev_loss, dev_wer = validate_qwen(
             model,
             processor,
@@ -574,7 +578,7 @@ def main():
     
     torch.manual_seed(SEED)
     
-    output_dir = MODELS_DIR / time.strftime("%Y%m%d_%H%M%S")
+    output_dir = MODELS_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"Output dir: {output_dir}")
