@@ -23,8 +23,8 @@ DATA_DIR = Path("data/processed/m3av_dataset/segments")
 QWEN_MODEL_ID = f"Qwen/Qwen3-ASR-{SIZE}-hf" # Qwen/Qwen3-ASR-1.7B-hf or Qwen/Qwen3-ASR-0.6B-hf
 MODELS_DIR = Path(f"outputs/training/qwen_{SIZE}")
 
-TRAIN_SUBSET_FRACTION = 0.0001
-BATCH_SIZE = 1
+TRAIN_SUBSET_FRACTION = 1.0
+BATCH_SIZE = 8
 GRAD_ACCUM_STEPS = 8
 LEARNING_RATE = 2e-5
 NUM_EPOCHS = 1

@@ -540,7 +540,7 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
 def main():
     start_time = time.time()
     
-    output_dir = MODELS_DIR / time.strftime("%Y%m%d_%H%M%S")
+    output_dir = MODELS_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"Output dir: {output_dir}")
