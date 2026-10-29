@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 import time
 import math
+import os
 
 import matplotlib
 matplotlib.use("Agg")
@@ -21,8 +22,8 @@ TRAIN_MANIFEST_CSV = Path("data/manifests/m3av_train_manifest.csv")
 DEV_MANIFEST_CSV = Path("data/manifests/m3av_dev_manifest.csv")
 DATA_DIR = Path("data/processed/m3av_dataset/segments")
 
-WHISPER_DIR = Path("outputs/training/whisper")
-MODELS_DIR = WHISPER_DIR / f"{SIZE}"
+WHISPER_DIR = Path(f"outputs/training/whisper_{SIZE}")
+MODELS_DIR = Path(f"outputs/training/whisper_{SIZE}")
 
 TRAIN_SUBSET_FRACTION = 1.0
 BATCH_SIZE = 8
@@ -348,6 +349,21 @@ def save_loss_plot(
 
 
 
+# Temporary checkpoint
+def save_checkpoint_atomic(model, checkpoint_path):
+    """Save model weights safely, replacing the target only after saving completes."""
+    checkpoint_path = Path(checkpoint_path)
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+
+    temp_path = checkpoint_path.with_name(checkpoint_path.name + ".tmp")
+
+    torch.save(model.state_dict(), temp_path)
+    os.replace(temp_path, checkpoint_path)
+
+    print(f"Checkpoint saved: {checkpoint_path}", flush=True)
+
+
+
 # === Training ==================
 
 def train_whisper(model, train_dataset, dev_dataset, output_dir):
@@ -460,6 +476,11 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
                 optimizer.step()
                 optimizer.zero_grad(set_to_none=True)
 
+                # Save a checkpoint every 104 training batches,
+                # after a completed optimizer update.
+                if (batch_idx + 1) % 104 == 0:
+                    save_checkpoint_atomic(model, output_dir / "latest.pt")	
+
                 accumulated_valid_tokens = 0
         
         if total_valid_tokens == 0:
@@ -468,10 +489,14 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
         epoch_train_loss = total_loss / total_valid_tokens
 
         # Save model weights after training completes for this epoch.
-        checkpoint_path = output_dir / f"epoch_{epoch + 1}.pt"
+        checkpoint_path = output_dir / f"epoch{epoch + 1}.pt"
         torch.save(model.state_dict(), checkpoint_path)
         print(f"Model weights saved to: {checkpoint_path}")
-        
+
+        if TRAIN_SUBSET_FRACTION < 1.0:
+            print(f"Smoke test complete ({TRAIN_SUBSET_FRACTION*100}% of train set); skipping full validation.")
+            return
+
         dev_loss, dev_wer = validate_whisper(
             model,
             dev_loader,

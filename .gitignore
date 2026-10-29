@@ -5,6 +5,7 @@ logs/
 outputs/smoke_test/
 ignore/
 project/
+outputs/training/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
