@@ -490,6 +490,12 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
 
         # Save model weights after training completes for this epoch.
         checkpoint_path = output_dir / f"epoch{epoch + 1}.pt"
+        
+        temp = epoch + 1
+        while checkpoint_path.is_dir():
+            temp += 1
+            checkpoint_path = output_dir / f"epoch{epoch + temp}.pt"
+        
         torch.save(model.state_dict(), checkpoint_path)
         print(f"Model weights saved to: {checkpoint_path}")
 

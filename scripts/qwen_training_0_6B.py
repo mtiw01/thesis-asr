@@ -13,6 +13,8 @@ import torch
 
 from transformers import (AutoProcessor, Qwen3ASRForConditionalGeneration)
 
+from normalize_text import normalize_text
+
 # === Constants ===
 
 SIZE = "0.6B" # set size to "0.6B" or "1.7B"
@@ -38,15 +40,6 @@ USE_MIXED_PRECISION = True
 
 
 # === Helper Functions ===
-
-def normalize_text(text):
-    text = text.lower()
-    text = text.replace("'", "")                # remove apostrophes without splitting contractions
-    text = re.sub(r"[-‐‑‒–—]", " ", text)       # treat hyphens and dashes as word separators
-    text = re.sub(r"[^\w\s]", " ", text)        # replace remaining punctuation with spaces
-    text = re.sub(r"\s+", " ", text).strip()    # normalize whitespace
-    return text
-
 
 def word_edit_distance(reference, hypothesis):
     """Return the minimum word-level edit distance."""
