@@ -12,7 +12,7 @@ import torch
 
 from transformers import (AutoProcessor, Qwen3ASRForConditionalGeneration)
 
-from qwen_training_0_6 import (
+from qwen_training_0_6B import (
     check_files, 
     load_manifest, 
     get_amp_settings, 
