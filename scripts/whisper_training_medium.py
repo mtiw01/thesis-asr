@@ -14,6 +14,7 @@ import whisper.audio as whisper_audio
 import pandas as pd
 
 from helpers_whisper_training import LabelSmoothingLoss, batch_tensors
+from normalize_text import normalize_text
 
 # === Constants ===
 
@@ -22,7 +23,6 @@ TRAIN_MANIFEST_CSV = Path("data/manifests/m3av_train_manifest.csv")
 DEV_MANIFEST_CSV = Path("data/manifests/m3av_dev_manifest.csv")
 DATA_DIR = Path("data/processed/m3av_dataset/segments")
 
-WHISPER_DIR = Path(f"outputs/training/whisper_{SIZE}")
 MODELS_DIR = Path(f"outputs/training/whisper_{SIZE}")
 
 TRAIN_SUBSET_FRACTION = 1.0
@@ -37,15 +37,6 @@ SEED = 42
 
 
 # === Helper Functions ===
-
-def normalize_text(text):
-    text = text.lower()
-    text = text.replace("'", "")                # remove apostrophes without splitting contractions
-    text = re.sub(r"[-‐‑‒–—]", " ", text)       # treat hyphens and dashes as word separators
-    text = re.sub(r"[^\w\s]", " ", text)        # replace remaining punctuation with spaces
-    text = re.sub(r"\s+", " ", text).strip()    # normalize whitespace
-    return text
-
 
 def check_files(audio_files, split):
     missing_files = [str(path) for path in audio_files if not Path(path).is_file()]
@@ -350,14 +341,24 @@ def save_loss_plot(
 
 
 # Temporary checkpoint
-def save_checkpoint_atomic(model, checkpoint_path):
-    """Save model weights safely, replacing the target only after saving completes."""
+def save_checkpoint_atomic(model, optimizer, checkpoint_path, epoch):
+    """Save model and optimizer state safely, replacing the target only after saving completes."""
     checkpoint_path = Path(checkpoint_path)
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
 
+    checkpoint = {
+        "epoch": epoch,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "model_size": SIZE,
+        "learning_rate": LEARNING_RATE,
+        "batch_size": BATCH_SIZE,
+        "grad_accum_steps": GRAD_ACCUM_STEPS,
+    }
+
     temp_path = checkpoint_path.with_name(checkpoint_path.name + ".tmp")
 
-    torch.save(model.state_dict(), temp_path)
+    torch.save(checkpoint, temp_path)
     os.replace(temp_path, checkpoint_path)
 
     print(f"Checkpoint saved: {checkpoint_path}", flush=True)
@@ -479,7 +480,7 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
                 # Save a checkpoint every 104 training batches,
                 # after a completed optimizer update.
                 if (batch_idx + 1) % 104 == 0:
-                    save_checkpoint_atomic(model, output_dir / "latest.pt")	
+                    save_checkpoint_atomic(model, optimizer, output_dir / "completed_batch.pt", epoch+1)	
 
                 accumulated_valid_tokens = 0
         
@@ -488,21 +489,10 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
 
         epoch_train_loss = total_loss / total_valid_tokens
 
-        # Save model weights after training completes for this epoch.
-        checkpoint_path = output_dir / f"epoch{epoch + 1}.pt"
-        
-        temp = epoch + 1
-        while checkpoint_path.is_dir():
-            temp += 1
-            checkpoint_path = output_dir / f"epoch{epoch + temp}.pt"
-        
-        torch.save(model.state_dict(), checkpoint_path)
-        print(f"Model weights saved to: {checkpoint_path}")
-
         if TRAIN_SUBSET_FRACTION < 1.0:
             print(f"Smoke test complete ({TRAIN_SUBSET_FRACTION*100}% of train set); skipping full validation.")
             return
-
+        
         dev_loss, dev_wer = validate_whisper(
             model,
             dev_loader,
@@ -511,6 +501,21 @@ def train_whisper(model, train_dataset, dev_dataset, output_dir):
             decoder_criterion,
             device,
         )
+
+        # Save model weights after training completes for this epoch.
+        checkpoint_path = output_dir / f"epoch{epoch + 1}.pt"
+        
+        if checkpoint_path.exists():
+            raise FileExistsError(f"Checkpoint already exists: {checkpoint_path}")
+        
+        save_checkpoint_atomic(
+            model,
+            optimizer,
+            checkpoint_path,
+            epoch + 1,
+        )
+        print(f"Model weights saved to: {checkpoint_path}")
+
 
         train_losses.append(epoch_train_loss)
         dev_losses.append(dev_loss)
