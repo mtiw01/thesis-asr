@@ -2,6 +2,7 @@ import pandas as pd
 from jiwer import process_words, visualize_alignment, wer
 import re
 from pathlib import Path
+from normalize_text import normalize_text
 
 CHOSEN_MODEL = "qwen" # whisper or qwen
 
@@ -9,23 +10,8 @@ if CHOSEN_MODEL=='whisper':
     SIZE = "turbo" # turbo or medium
 else:
     SIZE = "0.6B" # 1.7B or 0.6B
-    QWEN_MODEL_ID = f"Qwen/Qwen3-ASR-{SIZE}-hf" # Qwen/Qwen3-ASR-1.7B-hf or Qwen/Qwen3-ASR-0.6B-hf
 
-OUTPUT_DIR = Path("outputs/baseline")
-
-# AI suggested normalization. Mine were only the apostrophe replacement and the .strip call
-def normalize_text(text):
-    text = text.lower()
-    # remove apostrophes without splitting contractions
-    text = text.replace("'", "")
-    # treat hyphens and dashes as word separators
-    text = re.sub(r"[-‐‑‒–—]", " ", text)
-    # replace remaining punctuation with spaces
-    text = re.sub(r"[^\w\s]", " ", text)
-    # normalize whitespace
-    text = re.sub(r"\s+", " ", text).strip()
-    
-    return text
+OUTPUT_DIR = Path("outputs/training_evaluation")
 
 
 def get_score(ref, pred):
@@ -33,9 +19,9 @@ def get_score(ref, pred):
     # Use your normalized transcripts
     output = process_words(ref, pred)
     
-    res = ''
+    score = output.wer
     
-    score = wer(ref, pred)
+    res = ''
     # res += f"-------------------------"
     res += f"=== WER Model: {CHOSEN_MODEL.upper()} ==="
     res += f"\n-----------------------------\n"
@@ -54,7 +40,7 @@ def get_score(ref, pred):
 
 
 def write_result(res):
-    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_wer_evaluation.txt"
+    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_epoch2_wer_evaluation.txt"
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(res)
     return output_file
@@ -66,7 +52,7 @@ def main():
         return "Unknown Model"
     
     # set filepath
-    file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_predictions.csv"
+    file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_epoch2_predictions.csv"
     # read csv file
     df = pd.read_csv(file_path)
     

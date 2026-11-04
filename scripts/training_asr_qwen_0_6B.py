@@ -12,13 +12,13 @@ CHOSEN_MODEL = "qwen" # whisper or qwen
 if CHOSEN_MODEL=='whisper':
     SIZE = "medium" # turbo or medium
     MODELS_DIR = Path(f"outputs/training/whisper_{SIZE}")
-    MODEL_NAME = "epoch2"
 else:
     SIZE = "0.6B" # 1.7B or 0.6B
     MODELS_DIR = Path(f"outputs/training/qwen_{SIZE}")
-    MODEL_NAME = "epoch_2"
 
 # Constants
+MODEL_NAME = "epoch2"
+
 TEST_SEGMENT_DIR = Path("data/processed/m3av_dataset/segments/test")
 INPUT_CSV = Path("data/manifests/m3av_test_manifest.csv")
 OUTPUT_DIR = Path("outputs/training_evaluation")
