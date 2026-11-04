@@ -516,7 +516,7 @@ def train_qwen(model, processor, train_dataset, dev_dataset, output_dir, device)
         
         # Save the model and processor together so the checkpoint
         # can be loaded again using Hugging Face Transformers.
-        checkpoint_dir = output_dir / f"epoch_{epoch + 1}"
+        checkpoint_dir = output_dir / f"epoch{epoch + 1}"
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
         model.save_pretrained(checkpoint_dir)

@@ -132,7 +132,7 @@ def save_checkpoint(model, processor, output_dir, epoch_number):
     # Save the model and processor together so the checkpoint
     # can be loaded again using Hugging Face Transformers.
     
-    checkpoint_dir = output_dir / f"epoch_{epoch_number}"
+    checkpoint_dir = output_dir / f"epoch{epoch_number}"
     
     if checkpoint_dir.exists():
         raise FileExistsError(
