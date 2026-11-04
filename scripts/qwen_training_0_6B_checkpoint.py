@@ -31,7 +31,7 @@ DEV_MANIFEST_CSV = Path("data/manifests/m3av_dev_manifest.csv")
 
 MODELS_DIR = Path(f"outputs/training/qwen_{SIZE}")
 
-TRAIN_SUBSET_FRACTION = 0.00001
+TRAIN_SUBSET_FRACTION = 1.0
 BATCH_SIZE = 8
 GRAD_ACCUM_STEPS = 8
 LEARNING_RATE = 2e-5
