@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=qwen-1.7B-checkpoint
+#SBATCH --job-name=baseline-inference
 #SBATCH --partition=standard
 #SBATCH --gpus=A100:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=24:00:00
-#SBATCH --output=logs/qwen-1.7B-checkpoint-%j.out
+#SBATCH --output=logs/baseline-inference-%j.out
 
 module load miniforge3/26.3.2-2
 source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -13,4 +13,4 @@ conda activate /scratch/matiwa/envs/thesis-asr
 
 cd /scratch/matiwa/thesis-asr
 
-./.venv/bin/python -u scripts/qwen_training_1_7B_checkpoint.py
+./.venv/bin/python -u scripts/baseline_inference.py

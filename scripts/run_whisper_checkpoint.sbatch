@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=whisper-medium-inference
+#SBATCH --job-name=whisper-checkpoint
 #SBATCH --partition=standard
 #SBATCH --gpus=A100:1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=24:00:00
-#SBATCH --output=logs/whisper-medium-inference-%j.out
+#SBATCH --output=logs/whisper-checkpoint-%j.out
 
 module load miniforge3/26.3.2-2
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate /scratch/matiwa/envs/thesis-asr
 
 cd /scratch/matiwa/thesis-asr
-./.venv/bin/python -u scripts/training_asr_whisper_medium.py
+./.venv/bin/python -u scripts/whisper_training_checkpoint.py

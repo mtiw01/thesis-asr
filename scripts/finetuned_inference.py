@@ -123,7 +123,7 @@ def transcribe(model, processor, path):
     raise ValueError(f"Unknown model: {CHOSEN_MODEL}")
 
 
-def get_baseline(df):
+def run_inference(df):
     
     # load model
     model, processor = load_model(SIZE)
@@ -178,7 +178,7 @@ def get_baseline(df):
 
 def main():
     df = load_dataframe(INPUT_CSV) #.head(10)
-    get_baseline(df)
+    run_inference(df)
     # start_time = time.perf_counter()
 
     # get_baseline(df)

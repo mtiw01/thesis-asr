@@ -12,7 +12,7 @@ import torch
 
 from transformers import (AutoProcessor, Qwen3ASRForConditionalGeneration)
 
-from qwen_training_1_7B import (
+from qwen_training import (
     check_files, 
     load_manifest, 
     get_amp_settings, 
@@ -25,7 +25,7 @@ from qwen_training_1_7B import (
 
 # === Constants ===
 
-SIZE = "1.7B" # set size to "0.6B" or "1.7B"
+SIZE = "0.6B" # set size to "0.6B" or "1.7B"
 TRAIN_MANIFEST_CSV = Path("data/manifests/m3av_train_manifest.csv")
 DEV_MANIFEST_CSV = Path("data/manifests/m3av_dev_manifest.csv")
 
