@@ -14,7 +14,7 @@ import pandas as pd
 
 from helpers_whisper_training import LabelSmoothingLoss
 
-from whisper_training_turbo import (
+from whisper_training import (
     check_files, 
     collate_fn, 
     load_manifest, 
