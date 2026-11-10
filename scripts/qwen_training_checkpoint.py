@@ -223,7 +223,7 @@ def train_qwen(model, processor, train_dataset, dev_dataset, output_dir, device,
                 outputs = model(**inputs)
 
             if outputs.loss is None:
-                raise RuntimeError("Qwen returned no training loss.")
+                raise RuntimeError("Model returned no training loss.")
             
             # Convert mean token loss into summed token loss.
             # This permits token-weighted gradient accumulation.

@@ -5,10 +5,6 @@ import pandas as pd
 import json
 
 
-# Set condition
-EXPERIMENT = "word_boosting" # baseline or word_boosting
-
-
 # Configuration
 CHOSEN_MODEL = "whisper" # whisper or qwen
 
@@ -22,10 +18,11 @@ else:
 
 # Constants
 MODEL_NAME = "epoch2"
+
 TEST_SEGMENT_DIR = Path("data/processed/m3av_dataset/segments/test")
 TEST_MANIFEST = Path("data/manifests/m3av_test_manifest.csv")
 
-OUTPUT_DIR = Path(f"outputs/{EXPERIMENT}_evaluation")
+OUTPUT_DIR = Path(f"outputs/word_boosting_evaluation")
 VOCABULARY_DIR = Path("data/vocabulary.json")
 
 
@@ -47,34 +44,46 @@ def load_dataframe(input_csv):
 
 
 def load_json(file):
-    if EXPERIMENT!='word_boosting':
-        return None
+    if not file.is_file():
+        raise FileNotFoundError(
+            f"Vocabulary file does not exist at the specified destination:\n    {file}"
+        )
     
-    try:
-        with open(file, "r", encoding='utf-8') as f:
-            res = json.load(f)
-    except Exception as e:
-        print("No vocabulary found. Proceeding without context.")
-        return None
-    
+    with open(file, "r", encoding='utf-8') as f:
+        res = json.load(f)
+
     if not isinstance(res, dict):
-        raise ValueError("Vocabulary is must be a dictionary.")
+        raise ValueError("Vocabulary must be a dictionary.")
     
     vocabulary_data = {}
     for video_id, vocab in res.items():
         if not isinstance(vocab, list):
-            raise ValueError(f"Vocabulary for all videos must be a list. Current vocabulary type: {type(vocab)}")
+            raise ValueError(
+                f"Vocabulary for all videos must be a list."
+                f"Video ID: {video_id}."
+                f"Vocabulary type: {type(vocab)}"
+            )
         
         if not all(isinstance(word, str) for word in vocab):
-            raise ValueError("Vocabulary values must be strings in a list.")
+            raise ValueError(
+                f"Vocabulary values must be strings in a list."
+                f"Current video_id: {video_id}"
+            )
         
-        if len(vocab) != len(set(vocab)):
-            print(f"Original list: {vocab}")
-            vocab = list(set(vocab))
-            print(f"New list: {vocab}")
-        vocabulary_data[video_id]=vocab
+        
+        original_vocab_len = len(vocab)
+        vocab = list(dict.fromkeys(word.strip() for word in vocab if word.strip()))
+        
+        if not vocab:
+            raise ValueError(f"Vocabulary for {video_id} is empty.")
+        if len(vocab)!=original_vocab_len:
+            print(f"Video ID: '{video_id}':")
+            print(f"    {original_vocab_len} original values")
+            print(f"    {len(vocab)} unique values")
+        
+        vocabulary_data[str(video_id)] = vocab
     
-    print(f"Loaded vocabulary for {len(vocabulary_data)} videos.")
+    print(f"\nLoaded vocabulary for {len(vocabulary_data)} videos.")
     
     return vocabulary_data
 
@@ -130,12 +139,9 @@ def load_model(size=None):
 
 
 
-def transcribe(model, processor, path, vocabulary=None):
+def transcribe(model, processor, path, vocabulary):
     
-    vocab_prompt = None
-    
-    if vocabulary:
-        vocab_prompt = "Context for the audio: " + ", ".join(vocabulary)
+    vocab_prompt = "Context for the audio: " + ", ".join(vocabulary)
     
     if CHOSEN_MODEL == "whisper":
         with torch.inference_mode():    
@@ -173,8 +179,22 @@ def transcribe(model, processor, path, vocabulary=None):
     raise ValueError(f"Unknown model: {CHOSEN_MODEL}")
 
 
+
 def run_inference(df, vocabulary_video):
     
+    manifest_videos = set(df["video_id"].astype(str))
+    vocabulary_videos = set(vocabulary_video.keys())
+
+    missing_videos = manifest_videos - vocabulary_videos
+
+    if missing_videos:
+        raise ValueError(
+            f"Missing vocabulary for {len(missing_videos)} videos: "
+            f"{sorted(missing_videos)}"
+        )
+    
+    vocabulary_count = []
+    vocabulary_used = []
     # load model
     model, processor = load_model(SIZE)
     
@@ -186,7 +206,9 @@ def run_inference(df, vocabulary_video):
         video_id = row["video_id"]
         segment_path = TEST_SEGMENT_DIR / f"{sample_id}.wav"
         
-        vocabulary = vocabulary_video.get(video_id, [])
+        vocabulary = vocabulary_video[str(video_id)]
+        vocabulary_count.append(len(vocabulary))
+        vocabulary_used.append(", ".join(vocabulary))
         
         print(f"[{i}/{len(df)}] {sample_id}")
 
@@ -212,25 +234,27 @@ def run_inference(df, vocabulary_video):
     
     results = df.copy()
     results['model'] = CHOSEN_MODEL
+    results['vocabulary_count'] = vocabulary_count
+    results["vocabulary"] = vocabulary_used
     results['prediction'] = predictions
     results["status"] = status
     
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_{MODEL_NAME}_predictions.csv"
+    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_{MODEL_NAME}_word_boosting_predictions.csv"
     results.to_csv(output_file, index=False)
     
     success_count = sum(s=="ok" for s in status)
     error_count = len(status) - success_count
     
-    print("\nBaseline complete.")
-    print(f"The results are saved to: {output_file}")
+    print("\n")
+    print(f"Word Boosting complete.")
     print(f"Successful segments: {success_count}")
     print(f"Failed segments: {error_count}")
     print(f"Results saved to: {output_file}")
 
 
 def main():
-    df = load_dataframe(TEST_MANIFEST) #.head(10)
+    df = load_dataframe(TEST_MANIFEST).head(10)
     vocabulary = load_json(VOCABULARY_DIR)
     run_inference(df, vocabulary)
     # start_time = time.perf_counter()
