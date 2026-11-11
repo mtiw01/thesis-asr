@@ -254,18 +254,9 @@ def run_inference(df, vocabulary_video):
 
 
 def main():
-    df = load_dataframe(TEST_MANIFEST).head(10)
+    df = load_dataframe(TEST_MANIFEST) # .head(10)
     vocabulary = load_json(VOCABULARY_DIR)
     run_inference(df, vocabulary)
-    # start_time = time.perf_counter()
-
-    # get_baseline(df)
-
-    # end_time = time.perf_counter()
-    # elapsed = end_time - start_time
-
-    # print(f"\nTotal runtime: {elapsed:.2f} seconds")
-    # print(f"Total runtime: {elapsed / 60:.2f} minutes")
 
 
 if __name__=="__main__":

@@ -137,7 +137,6 @@ def get_baseline(df):
     error_count = len(status) - success_count
     
     print("\nBaseline complete.")
-    print(f"The results are saved to: {output_file}")
     print(f"Successful segments: {success_count}")
     print(f"Failed segments: {error_count}")
     print(f"Results saved to: {output_file}")
