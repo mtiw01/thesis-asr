@@ -18,7 +18,7 @@ else:
 # Constants
 TEST_SEGMENT_DIR = Path("data/processed/m3av_dataset/segments/test")
 INPUT_CSV = Path("data/manifests/m3av_test_manifest.csv")
-OUTPUT_DIR = Path("outputs/baseline")
+OUTPUT_DIR = Path("outputs/baseline_evaluation")
 
 
 def load_dataframe(input_csv):
