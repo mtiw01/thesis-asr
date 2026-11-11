@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from normalize_text import normalize_text
 
+INFERENCE_TYPE = "word_boosting" # "baseline" , "baseline_word_boosting" , "training" , "training_word_boosting"
 CHOSEN_MODEL = "qwen" # whisper or qwen
 
 if CHOSEN_MODEL=='whisper':
@@ -11,7 +12,7 @@ if CHOSEN_MODEL=='whisper':
 else:
     SIZE = "0.6B" # 1.7B or 0.6B
 
-OUTPUT_DIR = Path("outputs/training_evaluation")
+OUTPUT_DIR = Path(f"outputs/{INFERENCE_TYPE}_evaluation")
 
 
 def get_score(ref, pred):
@@ -40,7 +41,14 @@ def get_score(ref, pred):
 
 
 def write_result(res):
-    output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_epoch2_wer_evaluation.txt"
+    if INFERENCE_TYPE=="baseline":
+        output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_wer_evaluation.txt"
+    if INFERENCE_TYPE=="baseline_word_boosting":
+        output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_word_boosting_wer_evaluation.txt"
+    if INFERENCE_TYPE=="training":
+        output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_epoch2_wer_evaluation.txt"
+    if INFERENCE_TYPE=="word_boosting":
+        output_file = OUTPUT_DIR / f"{CHOSEN_MODEL}_{SIZE}_epoch2_word_boosting_wer_evaluation.txt"
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(res)
     return output_file
