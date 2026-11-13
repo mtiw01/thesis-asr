@@ -221,7 +221,7 @@ def run_inference(df, vocabulary_video):
 
 
 def main():
-    df = load_dataframe(TEST_MANIFEST).head(10)
+    df = load_dataframe(TEST_MANIFEST) #.head(10)
     vocabulary = load_json(VOCABULARY_DIR)
     run_inference(df, vocabulary)
 
