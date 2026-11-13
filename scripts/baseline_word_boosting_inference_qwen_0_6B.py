@@ -19,7 +19,7 @@ TEST_SEGMENT_DIR = Path("data/processed/m3av_dataset/segments/test")
 TEST_MANIFEST = Path("data/manifests/m3av_test_manifest.csv")
 
 OUTPUT_DIR = Path(f"outputs/baseline_word_boosting_evaluation")
-VOCABULARY_DIR = Path("data/vocabulary.json")
+VOCABULARY_DIR = Path("data/vocabulary_words10_ngram2.json")
 
 
 # === Load data =================
