@@ -3,16 +3,17 @@ import json
 import pandas as pd
 import yake
 import re
+from normalize_text import normalize_text
 
 
 # Constants
 M3AV_DATASET_DIR = Path("data/processed/m3av_dataset/dataset_v1.0_noaudio")
 TEST_MANIFEST = Path("data/manifests/m3av_test_manifest.csv")
 
-OUTPUT_DIR = Path(f"data/vocabulary.json")
+MAX_CANDIDATES = 10
+MAX_NGRAM_SIZE = 2
 
-MAX_CANDIDATES = 50
-MAX_NGRAM_SIZE = 3
+OUTPUT_DIR = Path(f"data/vocabulary_words{MAX_CANDIDATES}_ngram{MAX_NGRAM_SIZE}.json")
 
 
 # === Load data =================
@@ -82,11 +83,10 @@ def save_vocab(vocabulary, output_file):
 
 # === Vocab Extraction =========
 
-# AI
-def clean_candidate(term):
-    term = re.sub(r"\s+", " ", term).strip()
-    term = term.strip(".,;:!?()[]{}\"'")
 
+def clean_candidate(term):
+    term = normalize_text(term)
+    term = term.strip(".,;:!?()[]{}\"'") # AI
     return term
 
 

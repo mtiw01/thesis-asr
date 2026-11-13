@@ -14,6 +14,8 @@ else:
 OUTPUT_DIR = Path(f"outputs/{INFERENCE_TYPE}_evaluation")
 
 
+# check which words appear in the most D, S, I and compare them and then see if word boosting changed that 
+# (Does the recall imrpove after word boosting)
 def get_score(ref, pred):
 
     # Use your normalized transcripts
