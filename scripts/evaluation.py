@@ -3,13 +3,13 @@ from jiwer import process_words, visualize_alignment, wer
 from pathlib import Path
 from normalize_text import normalize_text
 
-INFERENCE_TYPE = "training_word_boosting" # "baseline" , "baseline_word_boosting" , "training" , "training_word_boosting"
-CHOSEN_MODEL = "whisper" # whisper or qwen
+INFERENCE_TYPE = "baseline_word_boosting" # "baseline" , "baseline_word_boosting" , "training" , "training_word_boosting"
+CHOSEN_MODEL = "qwen" # whisper or qwen
 
 if CHOSEN_MODEL=='whisper':
-    SIZE = "medium" # turbo or medium
+    SIZE = "turbo" # turbo or medium
 else:
-    SIZE = "1.7B" # 1.7B or 0.6B
+    SIZE = "0.6B" # 1.7B or 0.6B
 
 OUTPUT_DIR = Path(f"outputs/{INFERENCE_TYPE}_evaluation")
 
@@ -62,7 +62,7 @@ def main():
     if INFERENCE_TYPE=="baseline":
         file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_predictions.csv"
     if INFERENCE_TYPE=="baseline_word_boosting":
-        file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_predictions.csv"
+        file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_word_boosting_predictions.csv"
     if INFERENCE_TYPE=="training":
         file_path = OUTPUT_DIR / f"{CHOSEN_MODEL.lower()}_{SIZE}_epoch2_predictions.csv"
     if INFERENCE_TYPE=="training_word_boosting":
