@@ -36,9 +36,16 @@ def load_csv(file):
 
 
 # === load ocr data =============
-def load_ocr_transcriptions(video_id):
+def load_ocr_transcriptions(m3av_dataset_dir, video_id):    
+    video_path = m3av_dataset_dir / video_id
     
-    ocr_file = Path(f'{video_id}/ocr/ocr_result.json')
+    if not video_path.is_dir():
+        raise FileNotFoundError(f"Video directory for {video_id} not found.")
+    
+    ocr_file = Path(f'{video_path}/ocr/ocr_result.json')
+    
+    
+    # ocr_file = Path(f'{video_id}/ocr/ocr_result.json')
     
     if not ocr_file.is_file():
         raise FileNotFoundError(f"OCR file was not found at the specified location.\nLocation: {ocr_file}")
@@ -134,12 +141,7 @@ def extract_vocab(m3av_dataset_dir, test_df):
     for i, video_id in enumerate(video_ids):
         print(f"\n[{i}/{len(video_ids)}] Processing {video_id}")
         
-        video_path = m3av_dataset_dir / video_id
-        
-        if not video_path.is_dir():
-            raise FileNotFoundError(f"Video directory for {video_id} not found.")
-        
-        ocr_transcriptions = load_ocr_transcriptions(video_path)
+        ocr_transcriptions = load_ocr_transcriptions(m3av_dataset_dir, video_id)
         
         extracted_transcription = extract_candidates(ocr_transcriptions)
         if not extracted_transcription:

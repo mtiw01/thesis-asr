@@ -4,12 +4,12 @@ from pathlib import Path
 from normalize_text import normalize_text
 
 INFERENCE_TYPE = "baseline_word_boosting" # "baseline" , "baseline_word_boosting" , "training" , "training_word_boosting"
-CHOSEN_MODEL = "qwen" # whisper or qwen
+CHOSEN_MODEL = "whisper" # whisper or qwen
 
 if CHOSEN_MODEL=='whisper':
     SIZE = "turbo" # turbo or medium
 else:
-    SIZE = "0.6B" # 1.7B or 0.6B
+    SIZE = "1.7B" # 1.7B or 0.6B
 
 OUTPUT_DIR = Path(f"outputs/{INFERENCE_TYPE}_evaluation")
 
