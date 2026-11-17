@@ -3,7 +3,7 @@ from jiwer import process_words, visualize_alignment, wer
 from pathlib import Path
 from normalize_text import normalize_text
 
-INFERENCE_TYPE = "baseline_word_boosting" # "baseline" , "baseline_word_boosting" , "training" , "training_word_boosting"
+INFERENCE_TYPE = "training_word_boosting" # "baseline" , "baseline_word_boosting" , "training" , "training_word_boosting"
 CHOSEN_MODEL = "whisper" # whisper or qwen
 
 if CHOSEN_MODEL=='whisper':
