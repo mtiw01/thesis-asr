@@ -6,8 +6,6 @@ outputs/smoke_test/
 ignore/
 project/
 outputs/training/
-outputs/word_boosting_50_words/
-outputs/word_boosting_10_words/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
