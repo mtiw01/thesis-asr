@@ -17,9 +17,9 @@ REMOVE_STOPWORDS = False # True to remove stopwords, otherwise False
 STOPWORDS = set(stopwords.words("english"))
 
 if REMOVE_STOPWORDS:
-    OUTPUT_DIR = Path(f"outputs/comparisons_words{WORDS}_ngram{NGRAM}/without_stopwords") # comparisons_no_stopwords
+    OUTPUT_DIR = Path(f"outputs/comparisons/words{WORDS}_ngram{NGRAM}/without_stopwords") # comparisons_no_stopwords
 else:
-    OUTPUT_DIR = Path(f"outputs/comparisons_words{WORDS}_ngram{NGRAM}/with_stopwords") # comparisons
+    OUTPUT_DIR = Path(f"outputs/comparisons/words{WORDS}_ngram{NGRAM}/with_stopwords") # comparisons
 
 
 # --- global variables to be used ---
