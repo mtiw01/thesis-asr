@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 
 
 # === GLOBALS ===
-WORDS = 10
+WORDS = 20
 NGRAM = 2
 
 REMOVE_STOPWORDS = False # True to remove stopwords, otherwise False
@@ -23,6 +23,7 @@ else:
 
 
 # --- global variables to be used ---
+
 VARIANTS = {
     "baseline": Path("outputs/baseline_evaluation"),
     "training": Path("outputs/training_evaluation"),
@@ -41,7 +42,8 @@ COMPARISONS = [
     ("training", "baseline_word_boosting"),
 ]
 
-# --- /\/\/\/\/\/\/\/\/\ ---
+# --- _/\_/\_/\_/\_/\_/\_/\_/\_/\_ ---
+
 
 # === BUILD FILES LIST ===
 
