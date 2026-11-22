@@ -3,12 +3,26 @@ import re
 from collections import defaultdict, Counter
 import csv
 from normalize_text import normalize_text
+from nltk.corpus import stopwords
 
 
 # === GLOBALS ===
 WORDS = 10
 NGRAM = 2
 
+REMOVE_STOPWORDS = False # True to remove stopwords, otherwise False
+
+# --- NLTK setup ---
+# nltk.download("stopwords")
+STOPWORDS = set(stopwords.words("english"))
+
+if REMOVE_STOPWORDS:
+    OUTPUT_DIR = Path(f"outputs/comparisons_no_stopwords") # comparisons_no_stopwords
+else:
+    OUTPUT_DIR = Path(f"outputs/comparisons") # comparisons
+
+
+# --- global variables to be used ---
 VARIANTS = {
     "baseline": Path("outputs/baseline_evaluation"),
     "training": Path("outputs/training_evaluation"),
@@ -27,8 +41,7 @@ COMPARISONS = [
     ("training", "baseline_word_boosting"),
 ]
 
-OUTPUT_DIR = Path(f"outputs/comparisons") # comparisons vs comparisons_no_stopwords
-
+# --- /\/\/\/\/\/\/\/\/\ ---
 
 # === BUILD FILES LIST ===
 
@@ -410,6 +423,10 @@ def create_error_frequency(results):
                     if operation == "C":
                         continue
                     
+                    if REMOVE_STOPWORDS:
+                        if ref_word in STOPWORDS or hyp_word in STOPWORDS:
+                            continue
+                    
                     frequencies[
                         (model, operation, ref_word, hyp_word)
                     ][condition] += 1
@@ -463,12 +480,22 @@ def create_persistent_errors(results):
             for condition, sentence in sentence_data.items():
                 if sentence is None:
                     continue
-                errors_by_condition[condition] = Counter(
-                    (operation, ref_word, hyp_word)
-                    for operation, ref_word, hyp_word
-                    in sentence["alignment"]
-                    if operation != "C"
-                )
+                if REMOVE_STOPWORDS:
+                    errors_by_condition[condition] = Counter(
+                        (operation, ref_word, hyp_word)
+                        for operation, ref_word, hyp_word
+                        in sentence["alignment"]
+                        if operation != "C"
+                        and ref_word not in STOPWORDS
+                        and hyp_word not in STOPWORDS
+                    )
+                else:
+                    errors_by_condition[condition] = Counter(
+                        (operation, ref_word, hyp_word)
+                        for operation, ref_word, hyp_word
+                        in sentence["alignment"]
+                        if operation != "C"
+                    )
 
             if len(errors_by_condition) != 4:
                 continue
@@ -600,6 +627,10 @@ def write_model_reports(results):
                     for op, ref_word, hyp_word
                     in sentence["alignment"]
                     if op != "C"
+                    and (
+                        not REMOVE_STOPWORDS
+                        or (ref_word not in STOPWORDS and hyp_word not in STOPWORDS)
+                    )
                 ]
 
                 if errors:
@@ -618,6 +649,10 @@ def write_model_reports(results):
                         for op, ref_word, hyp_word
                         in sentence["alignment"]
                         if op != "C"
+                        and (
+                            not REMOVE_STOPWORDS
+                            or (ref_word not in STOPWORDS and hyp_word not in STOPWORDS)
+                        )
                     )
 
             if len(error_sets) == 4:
