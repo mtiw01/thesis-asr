@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 WORDS = 10
 NGRAM = 2
 
-REMOVE_STOPWORDS = True # True to remove stopwords, otherwise False
+REMOVE_STOPWORDS = False # True to remove stopwords, otherwise False
 
 # --- NLTK setup ---
 # nltk.download("stopwords")
@@ -502,7 +502,7 @@ def create_persistent_errors(results):
 
             common_errors = set.intersection( *[set(errors) for errors in errors_by_condition.values()] )
 
-            for error in common_errors:
+            for error in sorted(common_errors):
                 rows[model].append({
                     #"model": model,
                     "sentence": sentence_id,
