@@ -245,7 +245,7 @@ def get_sentence_data(model_results, sentence_id):
             f"Different references found for sentence {sentence_id}:\n{details}"
         )
 
-    ref = next(iter(references))
+    ref = next(iter(references.values()))
     sentence_results = {}
     
     for condition in ORDER:
@@ -460,7 +460,7 @@ def create_error_frequency(results):
 
 def create_persistent_errors(results):
 
-    rows = []
+    rows = defaultdict(list)
 
     for model, model_results in results.items():
         sentence_ids = set()
@@ -503,8 +503,8 @@ def create_persistent_errors(results):
             common_errors = set.intersection( *[set(errors) for errors in errors_by_condition.values()] )
 
             for error in common_errors:
-                rows.append({
-                    "model": model,
+                rows[model].append({
+                    #"model": model,
                     "sentence": sentence_id,
                     "error_type": error[0],
                     "reference_word": error[1],
@@ -678,18 +678,27 @@ def write_result(result):
     write_csv("overall_comparison.csv", result["overall"])
     write_csv("pairwise_comparison.csv", result["pairwise"])
     write_csv("error_frequency.csv", result["frequencies"])
-    write_csv("persistent_errors.csv", result["persistent"])
+    
+    # write_csv("persistent_errors.csv", result["persistent"])
+    persistent_dir = OUTPUT_DIR / "persistent_errors"
+    persistent_dir.mkdir(parents=True, exist_ok=True)
+    for model, errors in result["persistent"].items():
+        write_csv(
+            f"persistent_errors/{model}.csv",
+            errors
+        )
+    
     write_model_reports(result["results"])
 
 
 def main():
     # build file list
     all_files = build_files_list()
-    print("\nExtract files list.\n")
+    print("\nFiles extracted...\n")
     
     # Load data
     data = load_data(all_files)
-    print("Files Loaded.\n")
+    print("Files loaded...\n")
     
     # compare data
     result = compare(data)
